@@ -3,15 +3,17 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 
 class RouteData {
-  Polyline polyline;
-  LatLngBounds bounds;
-  String durationText;
-  num durationValue;
-  String distanceText;
-  num distanceValue;
-  String durationInTrafficText;
-  num durationInTrafficValue;
-  String summary;
+  final Polyline polyline;
+  final LatLngBounds bounds;
+  final String durationText;
+  final num durationValue;
+  final String distanceText;
+  final num distanceValue;
+  final String durationInTrafficText;
+  final num durationInTrafficValue;
+  final String summary;
+  // is calculated within the constructor
+  // and therefore cannot be final
   String arrivalTime;
 
   RouteData(

@@ -1,4 +1,4 @@
-import 'package:flutter_navigation/disposable.dart';
+import 'package:flutter_navigation/data/disposable.dart';
 import 'package:flutter_navigation/entity/location.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:rxdart/rxdart.dart';
@@ -19,6 +19,16 @@ class MarkerProvider extends Disposable {
   Marker get currentDestinationMarker => _markers[KEY_DESTINATION];
 
   Stream<Map<MarkerId, Marker>> get markerStream => _markerSubject.stream;
+
+  @override
+  void init() {
+    _markerSubject = BehaviorSubject<Map<MarkerId, Marker>>();
+  }
+
+  @override
+  void dispose() {
+    _markerSubject.close();
+  }
 
   /// Adds a marker for the current location to the markers map
   Location createLocationMarker(Location location) {
@@ -50,15 +60,5 @@ class MarkerProvider extends Disposable {
 
     _markers[markerId] = marker;
     _markerSubject.sink.add(_markers);
-  }
-
-  @override
-  void dispose() {
-    _markerSubject.close();
-  }
-
-  @override
-  void init() {
-    _markerSubject = BehaviorSubject<Map<MarkerId, Marker>>();
   }
 }

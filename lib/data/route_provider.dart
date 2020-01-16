@@ -1,4 +1,4 @@
-import 'package:flutter_navigation/disposable.dart';
+import 'package:flutter_navigation/data/disposable.dart';
 import 'package:flutter_navigation/entity/location.dart' as local;
 import 'package:flutter_navigation/entity/polyline_definition.dart';
 import 'package:flutter_navigation/entity/route_data.dart';
@@ -14,6 +14,16 @@ class RouteProvider extends Disposable {
   Stream<RouteData> get routeStream => _routeDataSubject.stream;
 
   RouteData get routeData => _routeData;
+
+  @override
+  void init() {
+    _routeDataSubject = BehaviorSubject<RouteData>();
+  }
+
+  @override
+  void dispose() {
+    _routeDataSubject.close();
+  }
 
   /// Adds a polyline to the google map
   Future<void> setPolyline(PolylineDefinition polylineDefinition,
@@ -64,11 +74,11 @@ class RouteProvider extends Disposable {
 
     LatLngBounds latLngBounds = LatLngBounds(
         northeast: local.Location(
-                longitude: bounds.northeast.lng, latitude: bounds.northeast.lat)
-            .toLatLon(),
+            longitude: bounds.northeast.lng,
+            latitude: bounds.northeast.lat).toLatLon(),
         southwest: local.Location(
-                longitude: bounds.southwest.lng, latitude: bounds.southwest.lat)
-            .toLatLon());
+            longitude: bounds.southwest.lng,
+            latitude: bounds.southwest.lat).toLatLon());
 
     _routeData = RouteData(
         polyline,
@@ -125,16 +135,6 @@ class RouteProvider extends Disposable {
     }
 
     return wayPoints;
-  }
-
-  @override
-  void dispose() {
-    _routeDataSubject.close();
-  }
-
-  @override
-  void init() {
-    _routeDataSubject = BehaviorSubject<RouteData>();
   }
 }
 

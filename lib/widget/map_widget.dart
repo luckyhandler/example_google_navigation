@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_navigation/entity/location.dart';
 import 'package:flutter_navigation/entity/route_data.dart';
-import 'package:flutter_navigation/route/map_repository.dart';
+import 'package:flutter_navigation/data/map_repository.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class MapWidget extends StatefulWidget {
@@ -26,48 +26,20 @@ class MapState extends State {
   StreamSubscription<Location> _locationSubscription;
   StreamSubscription<RouteData> _routeSubscription;
 
-  void _onMapCreated(GoogleMapController controller) {
-    _completer.complete(controller);
-    // Keep markers up-to-date
-    _markerSubscription = _repository.markersStream.listen((markerMap) {
-      setState(() {
-        _markers = Set.from(markerMap.values);
-      });
-    });
-
-    // Keep route data up-to-date
-    _routeSubscription = _repository.routeStream
-        .map((routeData) => routeData)
-        .listen((routeData) {
-      setState(() {
-        if (routeData != null && routeData.polyline != null) {
-          _routeData = routeData;
-        }
-      });
-    });
-
-    // Keep location up-to-date
-    _locationSubscription =
-        _repository.locationStream.listen((Location location) {
-      print('${location.latitude}, ${location.longitude}');
-
-      setState(() {
-        _location = _getBestMapPosition();
-      });
-
-      if (_moveToLocation) {
-        controller.animateCamera(
-            CameraUpdate.newCameraPosition((_location.toCameraFarPosition())));
-      }
-    });
-  }
-
   @override
   void initState() {
     super.initState();
 
     _location = _getBestMapPosition();
     _routeData = _repository.routeData;
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _routeSubscription.cancel();
+    _markerSubscription.cancel();
+    _locationSubscription.cancel();
   }
 
   @override
@@ -114,12 +86,40 @@ class MapState extends State {
     );
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-    _routeSubscription.cancel();
-    _markerSubscription.cancel();
-    _locationSubscription.cancel();
+  void _onMapCreated(GoogleMapController controller) {
+    _completer.complete(controller);
+    // Keep markers up-to-date
+    _markerSubscription = _repository.markersStream.listen((markerMap) {
+      setState(() {
+        _markers = Set.from(markerMap.values);
+      });
+    });
+
+    // Keep route data up-to-date
+    _routeSubscription = _repository.routeStream
+        .map((routeData) => routeData)
+        .listen((routeData) {
+      setState(() {
+        if (routeData != null && routeData.polyline != null) {
+          _routeData = routeData;
+        }
+      });
+    });
+
+    // Keep location up-to-date
+    _locationSubscription =
+        _repository.locationStream.listen((Location location) {
+          print('${location.latitude}, ${location.longitude}');
+
+          setState(() {
+            _location = _getBestMapPosition();
+          });
+
+          if (_moveToLocation) {
+            controller.animateCamera(
+                CameraUpdate.newCameraPosition((_location.toCameraFarPosition())));
+          }
+        });
   }
 
   Location _getBestMapPosition() {

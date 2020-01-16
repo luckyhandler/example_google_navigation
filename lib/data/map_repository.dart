@@ -1,26 +1,26 @@
-import 'package:flutter_navigation/disposable.dart';
+import 'package:flutter_navigation/data/disposable.dart';
 import 'package:flutter_navigation/entity/location.dart';
 import 'package:flutter_navigation/entity/polyline_definition.dart';
 import 'package:flutter_navigation/entity/ride_details.dart';
 import 'package:flutter_navigation/entity/route_data.dart';
-import 'package:flutter_navigation/route/marker_provider.dart';
-import 'package:flutter_navigation/route/route_provider.dart';
+import 'package:flutter_navigation/data/marker_provider.dart';
+import 'package:flutter_navigation/data/route_provider.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class RouteRepository extends Disposable {
   static final RouteRepository instance = RouteRepository._internal();
 
-  Location _location;
-  Location _destination;
-  RouteData _routeData;
-  RideDetails _rideDetails;
-
   factory RouteRepository() {
     return instance;
   }
 
   RouteRepository._internal();
+
+  Location _location;
+  Location _destination;
+  RouteData _routeData;
+  RideDetails _rideDetails;
 
   final LocationOptions locationOptions =
       LocationOptions(accuracy: LocationAccuracy.high);
@@ -37,7 +37,6 @@ class RouteRepository extends Disposable {
 
   RideDetails get rideDetails => _rideDetails;
 
-  /// Streams
   // While retrieving location updates keep marker stream up-to-date
   Stream<Location> get locationStream => _locationProvider
       .getPositionStream(locationOptions)
@@ -50,17 +49,16 @@ class RouteRepository extends Disposable {
   Stream<RouteData> get routeStream =>
       _routeProvider.routeStream.map((routeData) => _routeData = routeData);
 
-  Future<Location> getFullLocation() async {
-    final List<Placemark> placemarks = await _locationProvider
-        .placemarkFromCoordinates(_location.latitude, _location.longitude);
+  @override
+  void init() {
+    _routeProvider.init();
+    _markerProvider.init();
+  }
 
-    if (placemarks.isNotEmpty) {
-      Location fullLocation = placemarks[0].toLocation();
-      fullLocation.timestamp = _location.timestamp;
-      return fullLocation;
-    } else {
-      return null;
-    }
+  @override
+  void dispose() {
+    _routeProvider.dispose();
+    _markerProvider.dispose();
   }
 
   Future<bool> addDestination(String destinationString,
@@ -86,20 +84,21 @@ class RouteRepository extends Disposable {
     return true;
   }
 
+  Future<Location> getFullLocation() async {
+    final List<Placemark> placemarks = await _locationProvider
+        .placemarkFromCoordinates(_location.latitude, _location.longitude);
+
+    if (placemarks.isNotEmpty) {
+      Location fullLocation = placemarks[0].toLocation();
+      fullLocation.timestamp = _location.timestamp;
+      return fullLocation;
+    } else {
+      return null;
+    }
+  }
+
   void addRideDetails(RideDetails rideDetails) {
     _rideDetails = rideDetails;
-  }
-
-  @override
-  void dispose() {
-    _routeProvider.dispose();
-    _markerProvider.dispose();
-  }
-
-  @override
-  void init() {
-    _routeProvider.init();
-    _markerProvider.init();
   }
 }
 

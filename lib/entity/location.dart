@@ -3,12 +3,14 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 class Location {
   final double latitude;
   final double longitude;
-  DateTime timestamp;
   final String country;
   final String locality;
   final String postalCode;
   final String name;
   final String isoCountryCode;
+  // can't be final as google web service's
+  // placemarkFromCoordinates doesn't return date
+  DateTime timestamp;
 
   Location({
     this.longitude,
